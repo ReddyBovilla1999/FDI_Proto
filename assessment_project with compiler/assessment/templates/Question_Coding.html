@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Question Editor Enhanced</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Corrected path for local use -->
+  <link rel="stylesheet" href="/static/css/Question_Style.css">
+</head>
+<body>
+  <!-- The body of your HTML remains the same -->
+  <div class="top-header">
+    <div class="brand-title">
+        <a href="#" class="brand-title-text" style="text-decoration: none; color: inherit; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">FDI</a>
+        <div class="profile-menu-container" id="profileMenuContainer">
+            <div class="profile-avatar">S</div>
+            <i class="fas fa-question-circle profile-help-icon" id="helpIcon"></i>
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="profile-dropdown-header">
+                    <span>Sri</span><br>
+                    <small>srharshak@nexnoratech.onmicros....</small><br>
+                    <small>Nexnoratech</small>
+                </div>
+
+                <a href="#" class="profile-dropdown-item"><i class="fas fa-building"></i> Company Profile</a>
+                <a href="#" class="profile-dropdown-item"><i class="fas fa-users"></i> Team Members</a>
+                <a href="#" class="profile-dropdown-item"><i class="fas fa-envelope"></i> Email Templates</a>
+                <a href="#" class="profile-dropdown-item"><i class="fas fa-question-circle"></i> Connect Question Library</a>
+                <a href="#" class="profile-dropdown-item"><i class="fas fa-chart-bar"></i> Plan Usage</a>
+                <a href="#" class="profile-dropdown-item"><i class="fas fa-cog"></i> Setting Options</a>
+                <a href="#" class="profile-dropdown-item"><i class="fas fa-user-circle"></i> My Account</a>
+                <a href="#" class="profile-dropdown-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="header">
+      <div class="breadcrumb">
+        <span class="breadcrumb-link" onclick="history.back()">Back</span>
+        <span style="display:inline-block; width:8px;"></span>
+        <a href="#" class="breadcrumb-heading">SUMMARY</a>
+        <span style="margin: 0 4px; color: #ccc;">&gt;</span>
+        <span style="font-weight: bold; color: #1d2686;">QUESTION</span>
+        <span style="margin: 0 4px; color: #ccc;">&gt;</span>
+        <a href="#" class="breadcrumb-heading">CONFIGURE</a>
+        <span style="margin: 0 4px; color: #ccc;">&gt;</span>
+        <a href="#" class="breadcrumb-heading">INVITE OPTIONS</a>
+      </div>
+
+      <div class="status">
+
+        <span><span class="active-dot"></span> Active</span>
+        <a href="your_candidate_page.html" style="cursor:pointer; text-decoration: none; color: inherit;"><i class="fa-solid fa-users"></i> CANDIDATE</a>
+        <a href="invite_page.html" class="invite-btn">+ INVITE</a>
+        <button id="downloadPdfBtn" class="invite-btn" style="background-color: #1d2686;">Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="button-row">
+
+    <div style="margin-bottom: 0px; margin-right: 20px; display: flex; align-items: center;">
+      <label style="display: inline-block; margin-bottom: 0; margin-right: 5px;">Question Type:</label>
+      <span style="font-weight: bold; color: #1d2686;">Coding</span>
+    </div>
+    <div class="steps-row">
+      <div class="step-tab active" data-target="add-question-details"><i class="fas fa-file-alt"></i> 1. ADD QUESTION DETAILS</div>
+      <div class="step-tab" data-target="add-test-cases"><i class="fas fa-vials"></i> 2. ADD TEST CASES</div>
+      <div class="step-tab" data-target="select-language"><i class="fas fa-code"></i> 3. SELECT LANGUAGE</div>
+    </div>
+
+     <div>
+      <button class="preview-btn" onclick="openPreviewModal()" style="display: none;"><i class="fa-solid fa-eye"></i></button>
+      <button class="cancel-btn" onclick="handleCancelClick()">Cancel</button>
+ <button id="saveAndProceedBtn" class="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-900">Save & Proceed</button> </div>
+  </div>
+
+  <div class="form-group">
+    
+    <div class="toolbar" id="richTextToolbar">
+      <button onclick="document.getElementById('textColorPicker').click()" title="Text Color"><i class="fas fa-palette"></i></button>
+      <input type="color" id="textColorPicker" style="display: none;" onchange="execCmd('foreColor', this.value)">
+      <button onclick="execCmd('bold')" title="Bold"><i class="fas fa-bold"></i></button>
+      <button onclick="execCmd('italic')" title="Italic"><i class="fas fa-italic"></i></button>
+      <button onclick="execCmd('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+      <button onclick="execCmd('strikeThrough')" title="Strike Through"><i class="fas fa-strikethrough"></i></button>
+      <button onclick="execCmd('subscript')" title="subscript"><i class="fas fa-subscript"></i></button>
+      <button onclick="execCmd('superscript')" title="superscript"><i class="fas fa-superscript"></i></button>
+      <button onclick="execCmd('justifyCenter')" title="Align Center"><i class="fas fa-align-center"></i></button>
+      <button onclick="execCmd('justifyLeft')" title="Align Left"><i class="fas fa-align-left"></i></button>
+      <button onclick="execCmd('justifyRight')" title="Align Right"><i class="fas fa-align-right"></i></button>
+      <button onclick="execCmd('justifyFull')" title="Justify"><i class="fas fa-align-justify"></i></button>
+      <button onclick="execCmd('insertHorizontalRule')" title="Insert Horizontal Rule"><i class="fas fa-minus"></i></button>
+      <button onclick="execCmd('createLink', prompt('Enter URL:'))" title="Insert Link"><i class="fas fa-link"></i></button>
+      <button onclick="document.getElementById('imageFileInput').click()" title="Insert Image from File"><i class="fas fa-image"></i></button>
+      <input type="file" id="imageFileInput" onchange="insertImageFromFile(event)" style="display: none;" accept="image/*">
+       <button onclick="openVideoFileInput()" title="Insert Video"><i class="fas fa-video"></i>  </button>
+      <input type="file" id="videoFileInput" onchange="insertVideoFromFile(event)" style="display: none;" accept="video/*">
+      <button onclick="openRecordVideoModal()" title="Record Video"><i class="fas fa-circle-dot"></i> </button>
+      <button onclick="insertCodeBlock()" title="Insert Code"><i class="fas fa-code"></i></button>
+      <button onclick="execCmd('undo')" title="Undo"><i class="fas fa-undo"></i></button>
+      <button onclick="execCmd('redo')" title="Redo"><i class="fas fa-redo"></i></button>
+      <button onclick="execCmd('removeFormat')" title="Remove Formatting"><i class="fas fa-eraser"></i></button>
+      <button onclick="execCmd('indent')" title="Indent"><i class="fas fa-indent"></i></button>
+      <button onclick="execCmd('outdent')" title="Outdent"><i class="fas fa-outdent"></i></button>
+      <button onclick="insertTable()" title="Insert Table"><i class="fas fa-table"></i></button>
+      <button onclick="insertTextAtCursor('{ }')" title="Insert Curly Braces">{ }</button>
+      <button onclick="clearEditor()" title="Clear All"><i class="fas fa-trash"></i></button>
+
+    </div>
+    <div id="add-question-details" class="content-section active">
+    <div class="section">
+     <div class="form-group">
+        <label for="questionTitle">Q: Title<span class="required-star">*</span></label>
+        <input type="text" id="questionTitle" placeholder="Enter Question Title">
+      </div>
+      <div></div>
+      <label for="description-editor">Description <span class="required-star">*</span></label>
+      <div id="description-editor" contenteditable="true"
+      data-placeholder="Problem Text...
+Input
+Input Description...
+Output
+Output Description...
+Example
+Input:
+etc.
+Output:
+etc."
+      style="
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        min-height: 250px;
+        padding: 15px;
+        background: white;
+        outline: none;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="checkbox-group">
+        <input type="checkbox" id="interview"><label for="interview">Make This Question Available In Interview Area</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="watermark" checked><label for="watermark">Enable Watermark <i class="fas fa-info-circle" ></i></label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="fullscreen"><label for="fullscreen">Deliver Question In Full Screen</label>
+      </div>
+
+      <button class="add-topics" onclick="activateSection('add-topics-page')"><i class="fas fa-plus"></i> ADD TOPICS</button>
+      <span id="topicsSelectedCount">0 Topics Selected</span>
+      <div id="selectedTopicsDisplay" style="margin-top: 10px;">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Difficulty<span class="required-star">*</span></label>
+          <select id="difficultySelect">
+            <option value="">Select Difficulty Level</option>
+            <option value="Basic">Basic</option>
+            <option value="Novice">Novice</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+            <option value="Expert">Expert</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Depth Of Knowledge<span class="required-star">*</span></label>
+          <select id="dokSelect">
+            <option value="">Select DOK</option>
+            <option value="Recall & Reproduction"> Recall & Reproduction</option>
+            <option value="Skill & Concept">Skill & Concept</option>
+            <option value="Strategic Thinking">Strategic Thinking</option>
+            <option value="Extended Thinking">Extended Thinking</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Points<span class="required-star">*</span></label>
+          <input type="text" id="pointsInput" value="1" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Time To Answer<span class="required-star">*</span></label></label>
+          <input type="text" id="timeToAnswerInput" placeholder="HH:MM:SS"
+   oninput="this.value = formatTimeInput(this.value)" maxlength="8">
+        </div>
+      </div>
+
+      <div class="vertical-form-groups" id="draggable-form-groups">
+        <div draggable="true">
+        <label>Domain<span class="required-star">*</span></label>
+  <label>
+    <input type="radio" name="domain" value="Tech" checked> Tech
+    <input type="radio" name="domain" value="Non-Tech" disabled> Non-Tech
+  </label>
+</div>
+        <div  draggable="true">
+          <label>Tags</label>
+          <input type="text" id="tagsInput" placeholder="Tags for this question">
+        </div>
+        <div draggable="true">
+          <label>Hint</label>
+          <textarea id="hintTextarea" placeholder="Enter hint text..."></textarea>
+        </div>
+
+        <div  draggable="true">
+          <label>Instructions</label>
+          <textarea id="instructionsTextarea" placeholder="Type something..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="add-test-cases" class="content-section">
+    <div class="section">
+
+      <p><strong>EVALUATION MODE :</strong>
+        <input type="radio" name="eval" value="Auto evaluate" checked> Auto Evaluate
+        <input type="radio" name="eval" value="Manual evaluation"> Manual Evaluation
+      </p>
+      <table class="test-case-table" id="testCaseTable">
+        <thead>
+          <tr>
+            <th>Sr.No</th><th>Description</th><th>Input</th><th>Output</th><th>Categories</th><th>Weightage</th><th>Options</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button class="add-test-case-btn" id="addTestCaseMainBtn" onclick="openTestCaseModal()">ADD TEST CASE</button>
+    </div>
+  </div>
+
+  <div id="add-topics-page" class="content-section">
+    <div class="add-topics-section-content">
+        <h2 style="margin-bottom: 1em;"><b>SELECT TOPICS FOR THIS QUESTION </b></h2>
+        <div class="form-row aligned-dropdowns">
+            <div class="form-group">
+                <label for="assessmentAreaSelectPage">Assessment Areas</label>
+                <select id="assessmentAreaSelectPage">
+                    <option value="">Select</option>
+                    <option value="Programming">Programming</option>
+                    <option value="SQL">SQL</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="skillsSelectPage">Skills</label>
+                <select id="skillsSelectPage">
+                    <option value="">Select an Assessment Area First</option>
+                </select>
+            </div>
+        </div>
+        <div class="button-group-center" style="display: flex; gap: 10px; justify-content: flex-start; margin-top: 20px;">
+            <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded" id="addSelectedTopicBtn">ADD SELECTED</button>
+            <button class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded" onclick="activateSection('add-question-details')">DONE</button>
+        </div>
+        <div id="selectedTopicsDisplayPage" style="margin-top: 10px;">
+        </div>
+    </div>
+</div>
+
+
+  <div id="select-language" class="content-section">
+    <div class="section">
+      <div class="language-selection-section">
+          <h2><strong>ALLOWED LANGUAGES</strong><span class="required-star">*</span></h2>
+          <input type="text" id="languageSearch" placeholder="Q: Search">
+          <div class="language-selection-checkboxes">
+              <div class="language-item"><input type="checkbox" id="lang-c" value="c" class="lang-checkbox" data-type="programming"><label for="lang-c">C</label></div>
+              <div class="language-item"><input type="checkbox" id="lang-cpp" value="cpp" class="lang-checkbox" data-type="programming"><label for="lang-cpp">C++</label></div>
+              <div class="language-item"><input type="checkbox" id="lang-java8" value="java8" class="lang-checkbox" data-type="programming"><label for="lang-java8">Java 8</label></div>
+              <div class="language-item"><input type="checkbox" id="lang-java11" value="java11" class="lang-checkbox" data-type="programming"><label for="lang-java11">Java 11</label></div>
+              <div class="language-item"><input type="checkbox" id="lang-javascript" value="javascript" class="lang-checkbox" data-type="programming"><label for="lang-javascript">Java Script</label></div>
+              <div class="language-item"><input type="checkbox" id="lang-php" value="php" class="lang-checkbox" data-type="programming"><label for="lang-php">PHP</label></div>
+              <div class="language-item"><input type="checkbox" id="lang-python27" value="python27" class="lang-checkbox" data-type="programming"><label for="lang-python27">Python 2.7</label></div>
+              <div class="language-item"><input type="checkbox" id="lang-python3" value="python3" class="lang-checkbox" data-type="programming"><label for="lang-python3">Python 3</label></div>
+              <div class="language-item"><input type="checkbox" id="lang-typescript" value="typescript" class="lang-checkbox" data-type="programming"><label for="lang-typescript">Type Script</label></div>
+              <div class="language-item"><input type="checkbox" id="lang-reactjs" value="reactjs" class="lang-checkbox" data-type="programming"><label for="lang-reactjs">React JS</label></div>
+              <div class="language-item"><input type="checkbox" id="lang-sql" value="sql" class="lang-checkbox" data-type="sql"><label for="lang-sql">SQL</label></div>
+        </div>
+          <button class="bg-blue-600 text-white px-4 px-2 rounded-md hover:bg-blue-700" style="margin-right: 10px;"onclick="selectAllLanguages()">SELECT ALL</button>
+          <button class="bg-blue-600 text-white px-4 px-2 rounded-md hover:bg-blue-700" style="margin-right: 10px;"onclick="clearAllLanguages()">CLEAR ALL</button>
+
+
+
+      </div>    
+
+      <h2><strong>CODE STUB</strong></h2>
+
+      <div class="code-stub-section">
+    <div class="row-flex" style="display: flex; gap: 20px; align-items: flex-end;">
+        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+            <label for="functionName" style="font-weight: bold; display: block; margin-bottom: 4px;">Function Name</label>
+            <input type="text" id="functionName" placeholder="Ex.Solution" style="width: 100%; min-width: 200px; height: 44px;"/>
+        </div>
+        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+            <label for="returnType" style="display: block; margin-bottom: 4px;">Select Type</label>
+            <select id="returnType" style="width: 100%; min-width: 150px; height: 44px;">
+                <option value=>Select Type</option> 
+                <option value="int">Integer</option>
+                <option value="String">String</option>
+                <option value="long">Long </option>
+                <option value="float">Float</option>
+                <option value="double">Double</option>
+                <option value="char">Character</option>
+                <option value="boolean">Boolean</option>
+                <option value="int[]">Array</option>
+                <option value="String[]">String </option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Function Parameters Section -->
+    <div class="function-params-section">
+        <label>Parameters</label>
+        <div id="functionParametersContainer">
+            <!-- Initial parameter fields will be added dynamically by JS on load -->
+        </div>
+        <button class="add-new-param-btn" style="height:44px;" onclick="addFunctionParameter()">ADD +</button>
+    </div>
+
+        <!-- Generate Code Section -->
+        <div class="generate-code-section">
+            <button class="generate-code-btn" onclick="showGenerateCodeConfirm()">GENERATE CODE</button>
+        </div>
+      </div>
+
+      <div class="code-editor-container">
+        <div class="code-editor-toolbar">
+            <div class="code-toolbar-left">
+                <select id="mainLanguageSelect" onchange="updateMainCodeEditor(this.value)">
+
+                </select>
+            </div>
+            <div class="code-toolbar-right-buttons">
+                <button class="read-only-btn" onclick="toggleReadOnly(this)">READ ONLY</button>
+                <button class="clear-all-btn" onclick="clearCodeEditor()">CLEAR ALL</button>
+            </div>
+        </div>
+        <textarea class="code-editor-textarea" id="demo-code-display" spellcheck="false">Select A Language To See Demo Code.</textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="testCaseModal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeTestCaseModal()">&times;</span>
+      <h3>Add Test Cases</h3>
+
+      <div class="modal-row">
+        <div class="modal-group">
+          <label for="input-data">Input<span class="required-star">*</span> <span class="upload-link" onclick="document.getElementById('inputFileInput').click()">UPLOAD FILE</span></label>
+          <input type="file" id="inputFileInput" style="display: none;" onchange="handleExcelUpload(event, 'input')" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+          <textarea id="input-data" rows="3" placeholder="Enter Input Data"></textarea>
+        </div>
+        <div class="modal-group">
+          <label for="output-data">Output<span class="required-star">*</span> <span class="upload-link" onclick="document.getElementById('outputFileInput').click()">UPLOAD FILE</span></label>
+          <input type="file" id="outputFileInput" style="display: none;" onchange="handleExcelUpload(event, 'output')" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+          <textarea id="output-data" rows="3" placeholder="Enter Output Data"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-row">
+        <div class="modal-group">
+          <label for="test-description">Description</label>
+          <input type="text" id="test-description" placeholder="Enter Description" />
+        </div>
+        <div class="modal-group">
+          <label for="test-categories">Categories</label>
+          <select id="test-categories">
+            <option value=>Select Category</option>
+            <option value="Basic cases">Basic Cases</option>
+            <option value="Boundary cases">Boundary Cases</option>
+            <option value="Dependent cases">Dependent Cases</option>
+            <option value="Functional cases">Functional Cases</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-row">
+        <div class="modal-group">
+        </div>
+        <div class="modal-group">
+          <label for="weightage">Weightage</label>
+          <input type="text" id="weightage" placeholder="Ex.5" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+        </div>
+      </div>
+      <div class="modal-content-buttons">
+        <button class="add-test-case-btn" id="addTestCaseModalBtn">ADD TEST CASE</button>
+        <button class="add-test-case-btn" id="updateTestCaseModalBtn" style="display:none;">UPDATE TEST CASE</button>
+        <button class="delete-test-case-modal-btn" id="deleteTestCaseModalBtn" style="display:none;">DELETE</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="modal" id="previewModal">
+    <div class="modal-content">
+
+        <div id="preview-content" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+        </div>
+    </div>
+  </div>
+
+
+  <div class="modal" id="insertVideoModal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeInsertVideoModal()">&times;</span>
+      <h3>Insert Video from URL</h3>
+      <div class="modal-group">
+        <label for="videoUrlInput">Video URL (YouTube or MP4)</label>
+        <input type="text" id="videoUrlInput" placeholder="e.g., https://www.youtube.com/watch?v=..." />
+      </div>
+      <div class="modal-content-buttons">
+        <button class="add-test-case-btn" onclick="insertVideoFromUrl()">INSERT VIDEO</button>
+        <button class="delete-test-case-modal-btn" onclick="closeInsertVideoModal()">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal" id="recordVideoModal">
+    <div class="modal-content large-modal">
+      <span class="modal-close" onclick="closeRecordVideoModal()">&times;</span>
+      <h3>RECORD VIDEO</h3>
+      <div class="video-recorder-container">
+        <video id="videoPreview" autoplay muted class="w-full h-auto rounded-md shadow-md"></video>
+        <div class="flex justify-center gap-4 mt-4">
+          <button id="startRecordingBtn" class="record-btn"><i class="fas fa-play"></i> START RECORDING</button>
+          <button id="stopRecordingBtn" class="record-btn" disabled><i class="fas fa-stop"></i> STOP RECORDING</button>
+          <button id="playRecordedBtn" class="record-btn" disabled>
+          <button id="insertRecordedBtn" class="record-btn" disabled><i class="fas fa-upload"></i> INSERT VIDEO</button>
+        </div>
+        <div id="recordVideoMessage" class="mt-4 text-center text-sm text-gray-600"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Corrected path for local use -->
+  <script src="/static/js/Question_Script.js"></script>
+</body>
+</html>

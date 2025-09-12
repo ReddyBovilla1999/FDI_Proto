@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Difficulty</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1d2686;
+            --bg-color-page: #f9fafc;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color-page);
+        }
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Aligns content to the top */
+            min-height: calc(100vh - 120px); /* Adjusted for both headers */
+            padding: 8rem 2rem 2rem 2rem; /* Pushes content down from headers */
+            text-align: center;
+        }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .difficulty-card {
+            padding: 2rem;
+            border-radius: 0.75rem;
+            background-color: #ffffff; /* Make cards white */
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+            color: inherit;
+            border: 1px solid #e5e7eb; /* Add a light border */
+        }
+        .difficulty-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            border-color: var(--primary-color);
+        }
+        .breadcrumb-item {
+            color: #6b7280; /* text-gray-500 */
+        }
+        .breadcrumb-item.active {
+            color: #1f2937; /* text-gray-800 */
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="sticky-header">
+        <!-- Main Header with FDI logo and icons -->
+        <div class="bg-[#1d2686] text-white flex items-center justify-between px-8 h-[60px]">
+            <div class="flex items-center gap-4">
+                 <a href="#" class="font-bold text-2xl cursor-pointer hover:opacity-80 transition-opacity">FDI</a>
+            </div>
+            <div class="flex items-center space-x-6">
+                <i class="fas fa-user-circle text-2xl cursor-pointer hover:opacity-80 transition-opacity"></i>
+                <i class="fas fa-question-circle text-2xl cursor-pointer hover:opacity-80 transition-opacity"></i>
+            </div>
+        </div>
+        <!-- Secondary Header -->
+        <div class="bg-white shadow-md flex items-center justify-between px-8 py-3 h-[60px]">
+            <!-- Left side: Breadcrumbs -->
+            <div class="flex items-center gap-2 text-sm">
+                <a href="{% url 'assessment_home' %}" class="breadcrumb-item hover:text-gray-800">Back</a>
+                <span class="text-gray-400">&gt;</span>
+                <a href="#" class="breadcrumb-item hover:text-gray-800">SUMMARY</a>
+                <span class="text-gray-400">&gt;</span>
+                <a href="#" class="breadcrumb-item active">QUESTION</a>
+                <span class="text-gray-400">&gt;</span>
+                <a href="#" class="breadcrumb-item hover:text-gray-800">CONFIGURE</a>
+                <span class="text-gray-400">&gt;</span>
+                <a href="#" class="breadcrumb-item hover:text-gray-800">INVITE OPTIONS</a>
+            </div>
+
+            <!-- Right side: Actions -->
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <span class="h-2 w-2 bg-green-500 rounded-full"></span>
+                    <span class="text-gray-700 font-medium text-sm">Active</span>
+                </div>
+                <div class="flex items-center gap-2 text-gray-700">
+                    <i class="fas fa-users"></i>
+                    <span class="font-medium text-sm">CANDIDATE</span>
+                </div>
+                <button class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                    <i class="fas fa-plus mr-1"></i>INVITE
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Main Content -->
+    <div class="content-container">
+        <div class="w-full max-w-5xl mx-auto">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">SELECT DIFFICULTY LEVEL</h1>
+            <p class="text-gray-600 mb-8">Choose a category to browse questions from your library.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <a href="{% url 'question_library' %}?level=beginner" class="difficulty-card" data-level="beginner">
+                    <!-- Professional icon: fa-lightbulb for Beginner -->
+                    <i class="fas fa-lightbulb fa-3x text-yellow-500 mb-4"></i>
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-2">Beginner</h2>
+                    <p class="text-gray-500">Basic and Novice questions</p>
+                </a>
+                <a href="{% url 'question_library' %}?level=intermediate" class="difficulty-card" data-level="intermediate">
+                    <!-- Professional icon: fa-layer-group for Intermediate -->
+                    <i class="fas fa-layer-group fa-3x text-blue-600 mb-4"></i>
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-2">Intermediate</h2>
+                    <p class="text-gray-500">Intermediate level questions</p>
+                </a>
+                <a href="{% url 'question_library' %}?level=advanced" class="difficulty-card" data-level="advanced">
+                    <!-- Professional icon: fa-award for Advanced -->
+                    <i class="fas fa-award fa-3x text-purple-600 mb-4"></i>
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-2">Advanced</h2>
+                    <p class="text-gray-500">Advanced and Expert questions</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

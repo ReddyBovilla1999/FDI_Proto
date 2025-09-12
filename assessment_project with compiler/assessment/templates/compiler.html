@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FDI Assessment Platform</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts: Inter & Fira Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400&display=swap" rel="stylesheet">
+
+    <style>
+        /* General body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+        }
+        
+        /* Custom scrollbar for the question panel */
+        .panel-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .panel-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 10px;
+        }
+        .panel-scrollbar::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+        .panel-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+
+        /* Custom scrollbar for editor and console areas */
+        .editor-console-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .editor-console-scrollbar::-webkit-scrollbar-track {
+            background: #2b3647;
+            border-radius: 10px;
+        }
+        .editor-console-scrollbar::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 10px;
+        }
+        .editor-console-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+
+        /* Styling for active tabs */
+        .tab.active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        .question-tab.active {
+            background-color: #eef2ff;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        
+        /* Core Editor Styles */
+        .editor-wrapper {
+            display: flex;
+            overflow: hidden; 
+            position: relative;
+            background-color: #1f2937;
+            height: 100%;
+            border-radius: 0.5rem;
+        }
+
+        #line-numbers-container {
+            font-family: 'Fira Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5; 
+            text-align: right;
+            padding: 1rem 0.5rem; 
+            color: #6b7280; /* Muted color for line numbers */
+            background-color: #1f2937;
+            user-select: none;
+            border-right: 1px solid #374151;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        /* Highlight for the current line number */
+        #line-numbers-container .line-number-highlight {
+            color: #d1d5db; /* Bright color for active line number */
+        }
+        
+        #code-editor {
+            font-family: 'Fira Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5; 
+            padding: 1rem; 
+            color: #d1d5db;
+            background-color: transparent;
+            border: none;
+            outline: none;
+            resize: none;
+            width: 100%;
+            height: 100%;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow: auto;
+            z-index: 2;
+            position: relative;
+        }
+
+        #current-line-highlight {
+            position: absolute;
+            background-color: #2a313c; /* Darker highlight for the code line */
+            pointer-events: none;
+            z-index: 0;
+            transition: top 0.05s ease-out;
+        }
+
+        /* Tab content display settings */
+        .tab-content { display: none; }
+        .tab-content.active { display: flex; flex-direction: column; height: 100%; }
+        
+        /* Console styling to preserve formatting */
+        #console-output {
+            white-space: pre;
+            word-break: normal;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Header Section -->
+    <header class="bg-white shadow-sm p-2 flex flex-col gap-1 flex-shrink-0">
+        <div class="flex justify-between items-center px-1">
+            <h1 class="text-xl font-bold text-gray-800">FDI</h1>
+            <div class="flex items-center gap-4">
+                <div id="timerDisplay" class="flex items-center gap-2 text-gray-700 font-semibold text-lg">
+                    <i class="fa-regular fa-clock"></i>
+                    <span>00:00:00</span>
+                </div>
+                 <button id="submitCodeBtn" class="bg-green-600 text-white text-sm font-semibold px-3 py-1.5 rounded-md hover:bg-green-700 transition-colors">Submit</button>
+            </div>
+        </div>
+        <div class="flex justify-between items-center border-t border-gray-200 pt-1 px-1">
+            <!-- Content Tabs moved to header -->
+            <div class="flex items-center gap-6">
+                 <button class="tab active text-sm pb-1" data-tab="questionBank">Question</button>
+                 <button class="tab text-sm text-gray-500 hover:text-gray-800 pb-1" data-tab="schema">Schema</button>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <select id="languageSelect" class="appearance-none bg-gray-100 border border-gray-300 rounded-md py-1 pl-3 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none"></i>
+                </div>
+                <button id="runAllTestsBtn" class="bg-gray-200 text-gray-700 text-sm font-semibold px-3 py-1 rounded-md hover:bg-gray-300 transition-colors cursor-not-allowed" disabled title="This feature is not yet enabled.">Run All Test Cases</button>
+                <button id="runCodeBtn" class="bg-blue-600 text-white text-sm font-semibold px-3 py-1 rounded-md hover:bg-blue-700 transition-colors">Run Code</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" class="flex-grow flex gap-2 overflow-hidden p-2 relative">
+        <!-- Left Panel: Questions/Schema -->
+        <div id="left-panel" class="bg-white rounded-lg shadow-sm p-4 flex flex-col overflow-hidden" style="width: 35%;">
+            <!-- Question Tabs -->
+            <div id="question-tabs-container" class="flex-shrink-0 border-b border-gray-200 flex">
+                <!-- Dynamically generated question tabs will appear here -->
+            </div>
+            
+            <div class="flex-grow overflow-hidden relative pt-2">
+                <div id="questionBank" class="tab-content active panel-scrollbar overflow-y-auto absolute inset-0">
+                    <div id="question-title" class="text-lg font-bold mb-2"></div>
+                    <div id="question-description" class="mb-4 text-gray-700"></div>
+                    <div id="testCaseContainer" class="mb-4"></div>
+                    <div id="hintContainer" class="mb-4"></div>
+                </div>
+                <div id="schema" class="tab-content panel-scrollbar overflow-y-auto absolute inset-0">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Database Schema</h3>
+                        <button id="refreshSchemaBtn" class="text-blue-500 hover:text-blue-400"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div id="schemaContainer" class="space-y-4"><p class="text-gray-500">Schema will appear here for SQL.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Code Editor and Console -->
+        <div id="right-panel" class="flex flex-col overflow-hidden" style="width: 65%;">
+            <!-- Code Editor Section -->
+            <div id="editor-container" class="flex flex-col overflow-hidden" style="height: 65%;">
+                <div class="flex-grow editor-wrapper relative">
+                    <div id="current-line-highlight"></div>
+                    <div id="line-numbers-container"></div>
+                    <textarea id="code-editor" class="editor-console-scrollbar" spellcheck="false"></textarea>
+                </div>
+            </div>
+            
+            <!-- Console/Output Section (from compiler3.html) -->
+            <div id="console-container" class="flex flex-col overflow-hidden mt-2" style="height: 35%;">
+                 <h2 class="text-base font-semibold text-gray-700 pb-1 flex-shrink-0">Console / Output</h2>
+                <div class="flex-grow bg-[#1f2937] h-full rounded-lg p-3 flex flex-col" style="min-height: 0;">
+                    <div id="console-output" class="w-full text-white font-mono text-sm overflow-y-auto overflow-x-auto editor-console-scrollbar flex-grow"></div>
+                    <!-- Interactive Input -->
+                    <div id="interactive-input-container" class="mt-2 flex-shrink-0" style="display: none;">
+                        <input id="interactive-input" type="text" class="w-full rounded bg-gray-800 text-gray-200 p-2 font-mono text-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off" placeholder="Enter input here...">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Popup Modal -->
+    <div id="popupModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-8 shadow-xl text-center max-w-sm">
+            <span id="popupMessage" class="text-lg font-semibold text-gray-800"></span>
+            <button id="popupOkBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md mt-6 mx-auto block font-semibold hover:bg-blue-700">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE & CONFIG (MERGED) ---
+        let currentLanguageKey = null;
+        let timerInterval = null;
+        let currentSessionId = null;
+        let pollInterval = null;
+        let isAwaitingInput = false;
+        let lastOutputTime = null;
+        let cumulativeConsoleOutput = "";
+        const backendUrl = window.location.origin;
+
+        // --- LANGUAGE DEFINITIONS (from compiler3.html for interactivity) ---
+        const languages = {
+            "c": { name: "C (GCC 9.2.0)", demoCode: `#include <stdio.h>\n\nint main() {\n    int a, b;\n    printf("Enter first number: ");\n    fflush(stdout);\n    scanf("%d", &a);\n    printf("Enter second number: ");\n    fflush(stdout);\n    scanf("%d", &b);\n    printf("Sum: %d\\n", a + b);\n    return 0;\n}` },
+            "cpp": { name: "C++ (GCC 9.2.0)", demoCode: `#include <iostream>\n\nint main() {\n    int a, b;\n    std::cout << "Enter first number: " << std::flush;\n    std::cin >> a;\n    std::cout << "Enter second number: " << std::flush;\n    std::cin >> b;\n    std::cout << "Sum: " << a + b << std::endl;\n    return 0;\n}` },
+            "java11": { name: "Java (JDK 11.0.4)", demoCode: `import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        System.out.print("Enter your name: ");\n        String name = scanner.nextLine();\n        System.out.println("Hello, " + name + "!");\n    }\n}` },
+            "python3": { name: "Python (3.8.1)", demoCode: `print("Line 1")\nprint("Line 2")\na = input("Enter something for line 3: ")\nprint(f"You entered: {a}")` },
+            "sql": { name: "SQL (SQLite 3.27.2)", demoCode: `SELECT * FROM Employees;` },
+            "javascript": { name: "JavaScript (Node.js 12.14.0)", demoCode: `const readline = require('readline');\n\nconst rl = readline.createInterface({\n  input: process.stdin,\n  output: process.stdout\n});\n\nrl.question('What is your favorite food? ', (answer) => {\n  console.log(\`Oh, so your favorite food is \${answer}\`);\n  rl.close();\n});` },
+            "php": { name: "PHP (7.4.1)", demoCode: `<?php\n\necho "What's your name? ";\n$name = fgets(STDIN);\necho "Hello, " . $name;\n\n?>` },
+            "typescript": { name: "TypeScript (3.7.4)", demoCode: `import * as readline from 'readline';\n\nconst rl = readline.createInterface({ input: process.stdin, output: process.stdout });\n\nrl.question('Enter something: ', (input) => {\n    console.log(\`You wrote: \${input}\`);\n    rl.close();\n});` }
+        };
+
+        const allLanguages = {
+            ...languages,
+            "java8": { name: "Java 8 (OpenJDK 1.8.0)", demoCode: languages.java11.demoCode },
+            "python27": { name: "Python (2.7.17)", demoCode: `print "Line 1"\nprint "Line 2"\na = raw_input("Enter something for line 3: ")\nprint "You entered %s" % a` }
+        };
+
+        // --- MOCK DATA FOR QUESTIONS (from interview10.html for richness) ---
+        let questionsData = {};
+        let assessmentTimer = 3600; // default fallback
+
+        async function loadAssessment() {
+            // Try to get assessment_id from query string
+            const params = new URLSearchParams(window.location.search);
+            let assessmentId = params.get('assessment_id');
+            // If not found, extract from URL path (e.g., /assessment/start/123/)
+            if (!assessmentId) {
+                const match = window.location.pathname.match(/assessment\/start\/(\d+)/);
+                if (match) assessmentId = match[1];
+            }
+            if (!assessmentId) {
+                showPopup("Assessment ID not found in URL.");
+                return;
+            }
+
+            const resp = await fetch(`/api/assessment/${assessmentId}/`);
+            if (!resp.ok) {
+                showPopup("Could not load assessment.");
+                return;
+            }
+            const data = await resp.json();
+
+            // Set timer from backend
+            assessmentTimer = data.timer || 3600;
+
+            // Convert questions array to object with numeric keys for compatibility
+            questionsData = {};
+            data.questions.forEach((q, idx) => {
+                questionsData[idx + 1] = {
+                    title: q.title,
+                    description: q.description,
+                    testCases: (q.test_cases || []).map(tc => ({
+                        input: tc.input_data || tc.input,
+                        expected_output: tc.output_data || tc.expected_output
+                    })),
+                    hint: q.hint
+                };
+            });
+
+            // Now render the UI
+            generateQuestionTabs();
+            loadQuestion(1);
+            startCountdownTimer();
+        }
+
+        // --- DOM ELEMENTS ---
+        const languageSelect = document.getElementById('languageSelect');
+        const codeEditor = document.getElementById('code-editor');
+        const lineNumbersContainer = document.getElementById('line-numbers-container');
+        const highlightElement = document.getElementById('current-line-highlight');
+        const runCodeBtn = document.getElementById('runCodeBtn');
+        const schemaContainer = document.getElementById('schemaContainer');
+        const refreshSchemaBtn = document.getElementById('refreshSchemaBtn');
+        const questionTabsContainer = document.getElementById('question-tabs-container');
+        const questionTitleEl = document.getElementById('question-title');
+        const questionDescriptionEl = document.getElementById('question-description');
+        const testCaseContainerEl = document.getElementById('testCaseContainer');
+        const hintContainerEl = document.getElementById('hintContainer');
+        const consoleOutput = document.getElementById('console-output');
+        const interactiveInputContainer = document.getElementById('interactive-input-container');
+        const interactiveInput = document.getElementById('interactive-input');
+        const consoleContainer = document.getElementById('console-container');
+
+
+        // --- UTILITY & PREPARATION FUNCTIONS ---
+        function escapeHtml(text) {
+            if (typeof text !== 'string') return text;
+            const div = document.createElement('div');
+            div.innerText = text;
+            return div.innerHTML;
+        }
+
+        function adjustSelectWidth(selectElement) {
+            const tempSpan = document.createElement('span');
+            document.body.appendChild(tempSpan);
+            const selectedOptionText = selectElement.options[selectElement.selectedIndex].text;
+            const selectStyle = window.getComputedStyle(selectElement);
+            tempSpan.style.font = selectStyle.font;
+            tempSpan.style.fontSize = selectStyle.fontSize;
+            tempSpan.style.fontWeight = selectStyle.fontWeight;
+            tempSpan.style.fontFamily = selectStyle.fontFamily;
+            tempSpan.style.letterSpacing = selectStyle.letterSpacing;
+            tempSpan.textContent = selectedOptionText;
+            tempSpan.style.visibility = 'hidden';
+            tempSpan.style.position = 'absolute';
+            tempSpan.style.whiteSpace = 'nowrap';
+            const padding = 32; // ~2rem for pl-3, pr-8 and buffer
+            const width = Math.ceil(tempSpan.getBoundingClientRect().width) + padding;
+            selectElement.style.width = `${width}px`;
+            document.body.removeChild(tempSpan);
+        }
+
+        function updateLineNumbers() {
+            const lineCount = codeEditor.value.split('\n').length;
+            lineNumbersContainer.innerHTML = Array.from({ length: lineCount }, (_, i) => `<div>${i + 1}</div>`).join('');
+            updateHighlight();
+        }
+
+        function updateHighlight() {
+            const styles = window.getComputedStyle(codeEditor);
+            const lineHeight = parseFloat(styles.lineHeight);
+            const paddingTop = parseFloat(styles.paddingTop);
+            const textUpToCursor = codeEditor.value.substring(0, codeEditor.selectionStart);
+            const currentLineIndex = textUpToCursor.split('\n').length - 1;
+            const topPosition = (currentLineIndex * lineHeight) + paddingTop - codeEditor.scrollTop;
+            const leftPosition = lineNumbersContainer.offsetWidth;
+            highlightElement.style.top = `${topPosition}px`;
+            highlightElement.style.left = `${leftPosition}px`;
+            highlightElement.style.height = `${lineHeight}px`;
+            highlightElement.style.width = `calc(100% - ${leftPosition}px)`;
+            
+            const allLineNumbers = lineNumbersContainer.querySelectorAll('div');
+            allLineNumbers.forEach(num => num.classList.remove('line-number-highlight'));
+            if (allLineNumbers[currentLineIndex]) {
+                allLineNumbers[currentLineIndex].classList.add('line-number-highlight');
+            }
+        }
+        
+        function updateSchemaTabVisibility() {
+            const schemaTabBtn = document.querySelector('.tab[data-tab="schema"]');
+            schemaTabBtn.style.display = currentLanguageKey === 'sql' ? 'flex' : 'none';
+            if (currentLanguageKey !== 'sql' && schemaTabBtn.classList.contains('active')) {
+                document.querySelector('.tab[data-tab="questionBank"]').click();
+            }
+        }
+
+        function handleLanguageChange() {
+            currentLanguageKey = languageSelect.value;
+            const isLanguageSelected = !!currentLanguageKey;
+
+            codeEditor.disabled = !isLanguageSelected;
+            runCodeBtn.disabled = !isLanguageSelected;
+
+            if (isLanguageSelected) {
+                codeEditor.value = allLanguages[currentLanguageKey].demoCode;
+                if(currentLanguageKey === 'sql') {
+                    loadSchema();
+                }
+            } else {
+                codeEditor.value = ""; // Clear editor if no language is selected
+            }
+            
+            updateLineNumbers();
+            updateSchemaTabVisibility();
+            adjustSelectWidth(languageSelect); // Adjust width on change
+        }
+
+        function populateLanguageDropdown() {
+            let optionsHtml = '<option value="" disabled selected>- Select Language -</option>';
+            optionsHtml += Object.keys(allLanguages)
+                .map(key => `<option value="${key}">${allLanguages[key].name}</option>`)
+                .join('');
+            languageSelect.innerHTML = optionsHtml;
+        }
+        
+        // --- QUESTION LOADING & TIMER ---
+        function generateQuestionTabs() {
+            let tabsHtml = '';
+            Object.keys(questionsData).forEach(id => {
+                tabsHtml += `<button class="question-tab flex-1 text-center text-sm p-2 text-gray-500 rounded-t-lg" data-question-id="${id}">Question ${id}</button>`;
+            });
+            questionTabsContainer.innerHTML = tabsHtml;
+            
+            const questionTabs = document.querySelectorAll('.question-tab');
+            questionTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    questionTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    loadQuestion(tab.dataset.questionId);
+                });
+            });
+            if(questionTabs.length > 0) {
+                questionTabs[0].classList.add('active');
+            }
+        }
+
+        function loadQuestion(questionId) {
+            const data = questionsData[questionId];
+            if (!data) return;
+
+            questionTitleEl.textContent = data.title;
+            questionDescriptionEl.innerHTML = data.description.replace(/`([^`]+)`/g, '<code class="bg-gray-200 text-gray-800 px-1 py-0.5 rounded text-sm">$1</code>');
+            renderTestCases(data.testCases);
+            renderHint(data.hint);
+        }
+
+        function renderTestCases(testCases) {
+            if (!testCases || testCases.length === 0) {
+                testCaseContainerEl.innerHTML = "";
+                return;
+            }
+            let html = `<h3 class="text-md font-semibold text-gray-800 mb-2">Test Cases</h3>`;
+            html += `<div class="bg-gray-50 p-3 rounded-md border border-gray-200 space-y-4">`;
+            testCases.forEach((tc, idx) => {
+                html += `
+                <div>
+                    <p class="font-semibold text-sm text-gray-700 mb-2">Test Case ${idx + 1}</p>
+                    <div>
+                        <span class="block text-xs text-gray-500 font-semibold">Input:</span>
+                        <pre class="w-full bg-gray-200 text-gray-800 rounded p-2 text-sm mt-1">${escapeHtml(tc.input)}</pre>
+                    </div>
+                    <div class="mt-2">
+                        <span class="block text-xs text-gray-500 font-semibold">Expected Output:</span>
+                        <pre class="w-full bg-gray-200 text-gray-800 rounded p-2 text-sm mt-1">${escapeHtml(tc.expected_output)}</pre>
+                    </div>
+                </div>`;
+            });
+            html += `</div>`;
+            testCaseContainerEl.innerHTML = html;
+        }
+        
+        function renderHint(hint) {
+            if (!hint) {
+                hintContainerEl.innerHTML = "";
+                return;
+            }
+            hintContainerEl.innerHTML = `
+                <h3 class="text-md font-semibold text-gray-800 mb-2">Hint 1</h3>
+                <div class="bg-yellow-50 p-3 rounded-md border border-yellow-200 text-sm text-yellow-800">
+                    ${escapeHtml(hint)}
+                </div>
+            `;
+        }
+
+        function formatTime(sec) {
+            const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+            const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+            const s = String(sec % 60).padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        function startCountdownTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            const timerDisplay = document.querySelector('#timerDisplay span');
+            let countdownSeconds = assessmentTimer;
+            timerDisplay.textContent = formatTime(countdownSeconds);
+
+            timerInterval = setInterval(() => {
+                countdownSeconds--;
+                timerDisplay.textContent = formatTime(countdownSeconds);
+                if (countdownSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerDisplay.textContent = "00:00:00";
+                    showPopup("Time's up! Interview ended.");
+                }
+            }, 1000);
+        }
+        
+        function showPopup(message) {
+            const popupModal = document.getElementById('popupModal');
+            const popupMessage = document.getElementById('popupMessage');
+            const popupOkBtn = document.getElementById('popupOkBtn');
+            popupMessage.textContent = message;
+            popupModal.classList.remove('hidden');
+            popupOkBtn.onclick = () => popupModal.classList.add('hidden');
+        }
+
+        // --- CORE EXECUTION LOGIC (from compiler3.html) ---
+
+        function setRunningState(isRunning) {
+            if (isRunning) {
+                runCodeBtn.disabled = true;
+                runCodeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+                consoleOutput.textContent = ''; // Clear console on new run
+                cumulativeConsoleOutput = "";   // Reset cumulative output
+                hideInteractiveInput();
+                isAwaitingInput = false;
+                lastOutputTime = Date.now();
+            } else {
+                runCodeBtn.disabled = false;
+                runCodeBtn.innerHTML = 'Run Code';
+                if (pollInterval) clearInterval(pollInterval);
+                pollInterval = null;
+                currentSessionId = null;
+            }
+        }
+
+        function appendToConsole(text, className = '') {
+            if (!text) return;
+            const span = document.createElement('span');
+            if (className) span.className = className;
+            span.textContent = text;
+            consoleOutput.appendChild(span);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            cumulativeConsoleOutput += text; // Track all output for prompt detection
+        }
+
+        function showInteractiveInput() {
+            if (interactiveInputContainer.style.display === 'none') {
+                interactiveInputContainer.style.display = 'block';
+                interactiveInput.value = '';
+                interactiveInput.focus();
+                // Ensure the parent container also scrolls down
+                consoleOutput.parentElement.scrollTop = consoleOutput.parentElement.scrollHeight;
+            }
+        }
+
+        function hideInteractiveInput() {
+            interactiveInputContainer.style.display = 'none';
+        }
+
+        async function startExecution() {
+            setRunningState(true);
+            const code = codeEditor.value;
+            const language = languageSelect.value;
+
+            try {
+                const response = await fetch(`${backendUrl}/api/execute/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ language, code })
+                });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || `HTTP error! status: ${response.status}`);
+                }
+                
+                if (result.sessionId) {
+                    currentSessionId = result.sessionId;
+                    pollInterval = setInterval(pollForResult, 150);
+                } else {
+                    throw new Error("Did not receive a session ID.");
+                }
+            } catch (error) {
+                const detailedError = `Error: Connection to the execution server failed. Please try again later.`;
+                appendToConsole(detailedError + '\n', 'text-red-400');
+                setRunningState(false);
+            }
+        }
+        
+        async function pollForResult() {
+            if (!currentSessionId) {
+                setRunningState(false);
+                hideInteractiveInput();
+                return;
+            }
+            try {
+                const response = await fetch(`${backendUrl}/api/poll/${currentSessionId}/`);
+                if (!response.ok) {
+                    appendToConsole("\nSession finished or expired.", "text-gray-500");
+                    setRunningState(false);
+                    hideInteractiveInput();
+                    return;
+                }
+                const result = await response.json();
+
+                if (result.output) {
+                    appendToConsole(result.output);
+                    lastOutputTime = Date.now();
+                    isAwaitingInput = false;
+                }
+                if (result.error) {
+                    appendToConsole(result.error, 'text-red-400');
+                    lastOutputTime = Date.now();
+                    isAwaitingInput = false;
+                }
+
+                if (result.status === 'finished' || result.isStillRunning === false) {
+                    setRunningState(false);
+                    hideInteractiveInput();
+                    return;
+                }
+
+                // Input box logic
+                let shouldShowInput = false;
+                if (result.isStillRunning) {
+                    if (currentLanguageKey === 'javascript' || currentLanguageKey === 'typescript') {
+                        const promptRegex = /(\?\s*|:\s*|>\s*)$/m;
+                        shouldShowInput = promptRegex.test(cumulativeConsoleOutput);
+                    } else {
+                        const timeSince = Date.now() - lastOutputTime;
+                        const threshold = 400;
+                        shouldShowInput = timeSince > threshold;
+                    }
+                }
+                if (shouldShowInput) {
+                    showInteractiveInput();
+                    isAwaitingInput = true;
+                } else {
+                    hideInteractiveInput();
+                    isAwaitingInput = false;
+                }
+            } catch (error) {
+                appendToConsole(`\nError: Lost connection to the execution server.\n`, 'text-red-400');
+                setRunningState(false);
+                hideInteractiveInput();
+            }
+        }
+
+        async function sendInputToBackend(input) {
+            if (!currentSessionId) return;
+            
+            hideInteractiveInput();
+            appendToConsole(`${input}\n`, 'text-gray-500'); // Echo the input
+            
+            isAwaitingInput = false;
+            lastOutputTime = Date.now(); // Reset the timer
+
+            try {
+                await fetch(`${backendUrl}/api/submit-input/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: currentSessionId, input }),
+                });
+            } catch (error) {
+                appendToConsole(`\nError submitting input: ${error.message}`, 'text-red-400');
+                setRunningState(false);
+            }
+        }
+
+        async function loadSchema() {
+            schemaContainer.innerHTML = `<div class="flex items-center justify-center h-full"><i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i></div>`;
+
+            try {
+                const response = await fetch(`${backendUrl}/api/schema/`);
+                if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
+                const schema = await response.json();
+                
+                let schemaHtml = '';
+                const tableNames = Object.keys(schema);
+
+                if (tableNames.length === 0) {
+                    schemaContainer.innerHTML = '<p class="text-gray-500">No tables found.</p>';
+                    return;
+                }
+
+                tableNames.forEach(tableName => {
+                    schemaHtml += `
+                        <div class="bg-gray-100 p-3 rounded-md border">
+                            <h4 class="font-bold text-md text-blue-600">${tableName}</h4>
+                            <table class="w-full text-left text-sm mt-2">
+                                <thead class="bg-gray-200"><tr><th class="p-2 font-semibold">Column</th><th class="p-2 font-semibold">Type</th></tr></thead>
+                                <tbody>
+                                    ${schema[tableName].map(col => `<tr class="border-t"><td class="p-2">${escapeHtml(col.name)}</td><td class="p-2 text-gray-600">${escapeHtml(col.type)}</td></tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>`;
+                });
+                schemaContainer.innerHTML = schemaHtml;
+
+            } catch (error) {
+                console.error("Failed to load schema:", error);
+                schemaContainer.innerHTML = `<p class="text-red-500">Error loading schema. Please try again.</p>`;
+            }
+        }
+
+        // --- FETCH ASSESSMENT DATA DYNAMICALLY ---
+        async function fetchAssessmentData() {
+            // Get assessment_id from URL, e.g. ?assessment_id=12345 or /start/12345/
+            const urlParams = new URLSearchParams(window.location.search);
+            let assessmentId = null;
+            assessmentId = urlParams.get('assessment_id');
+            if (!assessmentId) {
+                // Try to extract from /assessment/start/<id>/ style URLs
+                const match = window.location.pathname.match(/assessment\/start\/(\d+)/);
+                if (match) assessmentId = match[1];
+            }
+            if (!assessmentId) {
+                showPopup("Assessment ID not found in URL.");
+                return null;
+            }
+            try {
+                const resp = await fetch(`/api/assessment/${assessmentId}/`);
+                if (!resp.ok) throw new Error("Failed to load assessment data.");
+                return await resp.json();
+            } catch (e) {
+                showPopup("Could not load assessment: " + e.message);
+                return null;
+            }
+        }
+
+        // --- EVENT LISTENERS & INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateLanguageDropdown();
+            adjustSelectWidth(languageSelect);
+            handleLanguageChange();
+            loadAssessment(); // <-- Only call this, it will call the rest after fetching
+
+            codeEditor.addEventListener('input', updateLineNumbers);
+            codeEditor.addEventListener('scroll', () => { 
+                lineNumbersContainer.scrollTop = codeEditor.scrollTop;
+                updateHighlight();
+            });
+            codeEditor.addEventListener('click', updateHighlight);
+            codeEditor.addEventListener('keyup', updateHighlight);
+
+            languageSelect.addEventListener('change', handleLanguageChange);
+            refreshSchemaBtn.addEventListener('click', loadSchema);
+            runCodeBtn.addEventListener('click', startExecution);
+            document.getElementById('submitCodeBtn').addEventListener('click', () => showPopup('Code Submitted Successfully'));
+            
+            interactiveInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && interactiveInput.value) {
+                    e.preventDefault();
+                    sendInputToBackend(interactiveInput.value);
+                }
+            });
+
+            const tabButtons = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(button.dataset.tab)?.classList.add('active');
+                });
+            });
+
+            updateLineNumbers();
+            setTimeout(updateHighlight, 10);
+        });
+
+        // --- RESIZER LOGIC (from interview10.html for smooth panel resizing) ---
+        const mainContent = document.getElementById('main-content');
+        const leftPanel = document.getElementById('left-panel');
+        const rightPanel = document.getElementById('right-panel');
+        const editorContainer = document.getElementById('editor-container');
+
+        let isResizingVertically = false;
+        let isResizingHorizontally = false;
+        const resizeBorderSensitivity = 5;
+
+        document.addEventListener('mousedown', startResize);
+        document.addEventListener('mousemove', handleResize);
+        document.addEventListener('mouseup', stopResize);
+        document.addEventListener('mousemove', updateCursor);
+
+        function startResize(e) {
+            const leftPanelRect = leftPanel.getBoundingClientRect();
+            if (e.clientX > leftPanelRect.right - resizeBorderSensitivity && e.clientX < leftPanelRect.right + resizeBorderSensitivity) {
+                isResizingVertically = true;
+                e.preventDefault(); 
+            }
+
+            const editorRect = editorContainer.getBoundingClientRect();
+            const rightPanelRect = rightPanel.getBoundingClientRect();
+            if (e.clientX > rightPanelRect.left && e.clientX < rightPanelRect.right &&
+                e.clientY > editorRect.bottom - resizeBorderSensitivity && e.clientY < editorRect.bottom + resizeBorderSensitivity) {
+                isResizingHorizontally = true;
+                e.preventDefault();
+            }
+
+            if(isResizingVertically || isResizingHorizontally) {
+                document.body.style.userSelect = 'none';
+            }
+        }
+
+        function handleResize(e) {
+            if (isResizingVertically) {
+                const totalWidth = mainContent.offsetWidth;
+                const gap = parseInt(window.getComputedStyle(mainContent).gap);
+                const mouseX = e.clientX - mainContent.getBoundingClientRect().left;
+                let newLeftWidth = (mouseX / (totalWidth - gap)) * 100;
+                if (newLeftWidth < 20) newLeftWidth = 20; // Min width 20%
+                if (newLeftWidth > 60) newLeftWidth = 60; // Max width 60%
+                leftPanel.style.width = `${newLeftWidth}%`;
+                rightPanel.style.width = `${100 - newLeftWidth}%`;
+            }
+            if (isResizingHorizontally) {
+                const totalHeight = rightPanel.offsetHeight;
+                const mouseY = e.clientY - rightPanel.getBoundingClientRect().top;
+                let newEditorHeight = (mouseY / totalHeight) * 100;
+                if (newEditorHeight < 20) newEditorHeight = 20; // Min height 20%
+                if (newEditorHeight > 80) newEditorHeight = 80; // Max height 80%
+                editorContainer.style.height = `${newEditorHeight}%`;
+                consoleContainer.style.height = `calc(${100 - newEditorHeight}% - 0.5rem)`;
+            }
+        }
+
+        function stopResize() {
+            isResizingVertically = false;
+            isResizingHorizontally = false;
+            document.body.style.userSelect = '';
+            document.body.style.cursor = 'default';
+        }
+
+        function updateCursor(e) {
+            if (isResizingVertically || isResizingHorizontally) return;
+            const leftPanelRect = leftPanel.getBoundingClientRect();
+            const editorRect = editorContainer.getBoundingClientRect();
+            const rightPanelRect = rightPanel.getBoundingClientRect();
+            const onVerticalBorder = e.clientX > leftPanelRect.right - resizeBorderSensitivity && e.clientX < leftPanelRect.right + resizeBorderSensitivity;
+            const onHorizontalBorder = e.clientX > rightPanelRect.left && e.clientX < rightPanelRect.right &&
+                                     e.clientY > editorRect.bottom - resizeBorderSensitivity && e.clientY < editorRect.bottom + resizeBorderSensitivity;
+            if (onVerticalBorder) document.body.style.cursor = 'col-resize';
+            else if (onHorizontalBorder) document.body.style.cursor = 'row-resize';
+            else document.body.style.cursor = 'default';
+        }
+    </script>
+</body>
+</html>

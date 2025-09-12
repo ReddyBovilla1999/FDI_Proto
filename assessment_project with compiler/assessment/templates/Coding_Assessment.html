@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Assessment Creation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1d2686;
+            --bg-color-page: #f9fafc;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color-page);
+        }
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Aligns content to the top */
+            min-height: calc(100vh - 120px); /* Adjusted for taller header */
+            padding: 8rem 2rem 2rem 2rem; /* Increased top padding */
+            text-align: center;
+        }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .breadcrumb-item {
+            color: #6b7280; /* text-gray-500 */
+        }
+        .breadcrumb-item.active {
+            color: #1f2937; /* text-gray-800 */
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="sticky-header">
+        <!-- Main Header with FDI logo and icons -->
+        <div class="bg-[#1d2686] text-white flex items-center justify-between px-8 h-[60px]">
+            <div class="flex items-center gap-4">
+                 <a href="#" class="font-bold text-2xl cursor-pointer hover:opacity-80 transition-opacity">FDI</a>
+            </div>
+            <div class="flex items-center space-x-6">
+                <i class="fas fa-user-circle text-2xl cursor-pointer hover:opacity-80 transition-opacity"></i>
+                <i class="fas fa-question-circle text-2xl cursor-pointer hover:opacity-80 transition-opacity"></i>
+            </div>
+        </div>
+        <!-- Secondary Header -->
+        <div class="bg-white shadow-md flex items-center justify-between px-8 py-3 h-[60px]">
+            <!-- Left side: Breadcrumbs -->
+            <div class="flex items-center gap-2 text-sm">
+                <a href="{% url 'assessment_home' %}" class="breadcrumb-item hover:text-gray-800">Back</a>
+                <span class="text-gray-400">&gt;</span>
+                <a href="#" class="breadcrumb-item hover:text-gray-800">SUMMARY</a>
+                <span class="text-gray-400">&gt;</span>
+                <a href="#" class="breadcrumb-item active">QUESTION</a>
+                <span class="text-gray-400">&gt;</span>
+                <a href="#" class="breadcrumb-item hover:text-gray-800">CONFIGURE</a>
+                <span class="text-gray-400">&gt;</span>
+                <a href="#" class="breadcrumb-item hover:text-gray-800">INVITE OPTIONS</a>
+            </div>
+
+            <!-- Right side: Actions -->
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <span class="h-2 w-2 bg-green-500 rounded-full"></span>
+                    <span class="text-gray-700 font-medium text-sm">Active</span>
+                </div>
+                <div class="flex items-center gap-2 text-gray-700">
+                    <i class="fas fa-users"></i>
+                    <span class="font-medium text-sm">CANDIDATE</span>
+                </div>
+                <button class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                    <i class="fas fa-plus mr-1"></i>INVITE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="view-initial-choice" class="content-container">
+        <div class="w-full max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">CODING ASSESSMENT</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <a href="{% url 'manual_question' %}" class="block p-8 bg-blue-50 rounded-xl hover:bg-blue-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="text-blue-600 mb-4"><i class="fas fa-pencil-alt fa-3x"></i></div>
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-2">Manual</h2>
+                    <p class="text-gray-500">Create a new coding question from scratch.</p>
+                </a>
+                <a href="{% url 'difficulty_choice' %}" id="automaticBtn" class="block p-8 bg-green-50 rounded-xl hover:bg-green-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
+                    <div class="text-green-600 mb-4"><i class="fas fa-tasks fa-3x"></i></div>
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-2">Automatic</h2>
+                    <p class="text-gray-500">Select questions from your question library.</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
